@@ -1,9 +1,13 @@
 ﻿using Consul;
 using MicroService.AggregateService.Models;
+using MicroService.Core.Cluster;
+using MicroService.Core.Registry;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -11,38 +15,47 @@ namespace MicroService.AggregateService.Services
 {
     public class HttpTeamServiceClient : ITeamServiceClient
     {
+        public readonly IServiceDiscovery _serviceDiscovery;
+        public readonly ILoadBalance _loadBalance;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public HttpTeamServiceClient(IHttpClientFactory httpClientFactory)
+        public HttpTeamServiceClient(IServiceDiscovery serviceDiscovery,
+                                    ILoadBalance loadBalance,
+                                    IHttpClientFactory httpClientFactory,
+                                    IConfiguration configuration)
         {
+            _serviceDiscovery = serviceDiscovery;
+            _loadBalance = loadBalance;
             _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         public async Task<List<AggregateTeam>> GetTeams()
         {
-            // 1、创建consul客户端连接
-            var consulClient = new ConsulClient(configuration =>
-            {
-                //1.1 建立客户端和服务端连接
-                configuration.Address = new Uri("http://127.0.0.1:8500");
-            });
-            // 2、consul查询服务,根据具体的服务名称查询
-            var queryResult = await consulClient.Catalog.Service("teamservice");
+            // 获取团队服务名称
+            string serviceName = _configuration.GetSection("TeamServiceName").Value;
+            // 获取团队服务链接
+            string serviceLink= _configuration.GetSection("TeamServiceLink").Value;
+            // 1、获取服务
+            List<ServiceUrl> serviceUrls = await _serviceDiscovery.Discovery(serviceName);
 
-            // 3、将服务进行拼接
-            var list = new List<string>();
-            foreach (var service in queryResult.Response)
+            // 2、负载均衡服务
+            ServiceUrl serviceUrl = _loadBalance.Select(serviceUrls);
+
+            // 3、建立请求
+            HttpClient httpClient = _httpClientFactory.CreateClient();
+            HttpResponseMessage response = await httpClient.GetAsync(serviceUrl.Url + serviceLink);
+
+            // 3.1json转换成对象
+            List<AggregateTeam> teams = null;
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                list.Add(service.ServiceAddress + ":" + service.ServicePort );
+                string json = await response.Content.ReadAsStringAsync();
+
+                teams = JsonConvert.DeserializeObject<List<AggregateTeam>>(json);
             }
 
-            HttpClient httpClient = _httpClientFactory.CreateClient();
-            //HttpResponseMessage response = await httpClient.GetAsync("http://localhost:5000/api/teams");
-            // 这里为了测试，取第一个地址，真实项目中应该根据负载均衡去获取地址
-            HttpResponseMessage response = await httpClient.GetAsync($"{list[0]}/api/teams");
-
-            string json = await response.Content.ReadAsStringAsync();
-            List<AggregateTeam> teams = JsonConvert.DeserializeObject<List<AggregateTeam>>(json);
             return teams;
         }
     }

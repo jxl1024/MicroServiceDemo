@@ -1,16 +1,12 @@
 using MicroService.AggregateService.Services;
+using MicroService.Core.Cluster;
+using MicroService.Core.Registry.Extentions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MicroService.AggregateService
 {
@@ -31,6 +27,12 @@ namespace MicroService.AggregateService
             // 2、注册team服务
             services.AddScoped<ITeamServiceClient, HttpTeamServiceClient>();
             services.AddScoped<IMemeberServiceClient, HttpMemberServiceClient>();
+
+            // 3、注册consul服务发现
+            services.AddConsulDiscovery(Configuration);
+
+            // 4、注册负载均衡
+            services.AddSingleton<ILoadBalance, RandomLoadBalance>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
