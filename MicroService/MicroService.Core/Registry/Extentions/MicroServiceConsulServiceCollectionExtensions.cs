@@ -23,7 +23,7 @@ namespace MicroService.Core.Registry.Extentions
         }
 
         // consul服务发现
-        public static IServiceCollection AddConsulDiscovery(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddConsulDiscovery(this IServiceCollection services)
         {
             // 1、加载Consul服务发现配置
             // services.Configure<ServiceDiscoveryConfig>(configuration.GetSection("ConsulDiscovery"));

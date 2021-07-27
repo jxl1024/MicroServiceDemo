@@ -1,5 +1,7 @@
 using MicroService.AggregateService.Services;
 using MicroService.Core.Cluster;
+using MicroService.Core.HttpClientConsul;
+using MicroService.Core.HttpClientConsul.Extentions;
 using MicroService.Core.Registry.Extentions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,7 +31,8 @@ namespace MicroService.AggregateService
             services.AddScoped<IMemeberServiceClient, HttpMemberServiceClient>();
 
             // 3、注册consul服务发现
-            services.AddConsulDiscovery(Configuration);
+            //services.AddConsulDiscovery();
+            services.AddHttpClientConsul();
 
             // 4、注册负载均衡
             services.AddSingleton<ILoadBalance, RandomLoadBalance>();
