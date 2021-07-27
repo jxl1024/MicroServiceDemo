@@ -1,3 +1,4 @@
+using MicroService.Core.Registry.Extentions;
 using MicroService.MemberService.Context;
 using MicroService.MemberService.Repositories;
 using MicroService.MemberService.Services;
@@ -39,6 +40,9 @@ namespace MicroService.MemberService
 
             // 3、注册成员仓储
             services.AddScoped<IMemberRepository, MemberRepository>();
+
+            // 4、添加consul注册中心，加载配置
+            services.AddConsulRegistry(Configuration);
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -56,6 +60,8 @@ namespace MicroService.MemberService
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MicroService.MemberService v1"));
             }
 
+            // 1、consul服务注册 
+            app.UseConsulRegistry();
             app.UseRouting();
 
             app.UseAuthorization();
