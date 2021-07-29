@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly;
 using System;
+using System.Net;
 using System.Net.Http;
 
 namespace MicroService.AggregateService
