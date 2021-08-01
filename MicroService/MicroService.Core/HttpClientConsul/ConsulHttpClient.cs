@@ -45,7 +45,8 @@ namespace MicroService.Core.HttpClientConsul
 
             // 3、建立请求
             HttpClient httpClient = httpClientFactory.CreateClient();
-            HttpResponseMessage response = await httpClient.GetAsync(serviceUrl.Url + serviceLink);
+            //HttpResponseMessage response = await httpClient.GetAsync(serviceUrl.Url + serviceLink);
+            HttpResponseMessage response = await httpClient.GetAsync(Serviceshcme+"://"+ serviceUrl.Url + serviceLink);
 
             // 3.1json转换成对象
             if (response.StatusCode == HttpStatusCode.OK)

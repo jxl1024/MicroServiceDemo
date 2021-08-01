@@ -34,7 +34,8 @@ namespace MicroService.Core.Registry.Extentions
 
             // 4、注册服务
             serviceNode.Id = Guid.NewGuid().ToString();
-            serviceNode.Address = $"{uri.Scheme}://{uri.Host}";
+            //serviceNode.Address = $"{uri.Scheme}://{uri.Host}";
+            serviceNode.Address = uri.Host;
             serviceNode.Port = uri.Port;
             serviceNode.HealthCheckAddress = $"{uri.Scheme}://{uri.Host}:{uri.Port}{serviceNode.HealthCheckAddress}";
             serviceRegistry.Register(serviceNode);

@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 
-namespace MicroService.TeamService.Controllers
+namespace MicroService.AggregateService.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("HealthCheck")]
     [ApiController]
     public class HealthCheckController : ControllerBase
     {
         [HttpGet]
         public ActionResult GetHealthCheck()
         {
-            //Console.WriteLine($"进行心跳检测:{DateTime.Now}");
+            Console.WriteLine($"进行心跳检测:{DateTime.Now}");
             return Ok("连接正常");
         }
     }

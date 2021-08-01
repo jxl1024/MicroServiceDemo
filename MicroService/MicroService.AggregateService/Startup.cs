@@ -93,6 +93,9 @@ namespace MicroService.AggregateService
             // 4、注册负载均衡
             services.AddSingleton<ILoadBalance, RandomLoadBalance>();
 
+            // 添加服务注册
+            //services.AddConsulRegistry(Configuration);
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -110,6 +113,8 @@ namespace MicroService.AggregateService
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MicroService.AggregateService v1"));
             }
 
+            // 1、服务注册
+            //app.UseConsulRegistry();
             app.UseRouting();
 
             app.UseAuthorization();

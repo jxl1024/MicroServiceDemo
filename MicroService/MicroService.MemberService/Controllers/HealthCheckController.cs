@@ -14,7 +14,7 @@ namespace MicroService.MemberService.Controllers
         [HttpGet]
         public ActionResult GetHealthCheck()
         {
-            Console.WriteLine($"进行心跳检测:{DateTime.Now}");
+            //Console.WriteLine($"进行心跳检测:{DateTime.Now}");
             return Ok("连接正常");
         }
     }
