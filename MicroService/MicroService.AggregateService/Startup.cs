@@ -94,7 +94,7 @@ namespace MicroService.AggregateService
             services.AddSingleton<ILoadBalance, RandomLoadBalance>();
 
             // 添加服务注册
-            //services.AddConsulRegistry(Configuration);
+            services.AddConsulRegistry(Configuration);
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -114,7 +114,7 @@ namespace MicroService.AggregateService
             }
 
             // 1、服务注册
-            //app.UseConsulRegistry();
+            app.UseConsulRegistry();
             app.UseRouting();
 
             app.UseAuthorization();

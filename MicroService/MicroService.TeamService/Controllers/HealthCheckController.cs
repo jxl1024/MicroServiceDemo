@@ -3,7 +3,7 @@ using System;
 
 namespace MicroService.TeamService.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/team/[controller]")]
     [ApiController]
     public class HealthCheckController : ControllerBase
     {
