@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MicroService.MemberService.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/member/[controller]")]
     [ApiController]
     public class HealthCheckController : ControllerBase
     {
