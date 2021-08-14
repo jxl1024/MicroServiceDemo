@@ -1,0 +1,23 @@
+{
+  "Routes": [
+    {
+      // 下游模板，这里配置的是团队聚合微服务URL地址
+      "DownstreamPathTemplate": "/api/aggregate",
+      // 下游Schemd
+      "DownstreamScheme": "http",
+      // 服务名称，配置的是聚合微服务里面服务注册时的Name的值
+      "ServiceName": "AggregateService",
+      // 负载均衡
+      "LoadBalancerOptions": {
+        // 最小连接数算法
+        "Type": "LeastConnection"
+      },
+      // 上游，即Ocelot模板
+      "UpstreamPathTemplate": "/ocelot",
+      // 访问上游的httpmethod
+      "UpstreamHttpMethod": [ "Get" ]
+    }
+  ],
+  "GlobalConfiguration": {
+  }
+}

@@ -1,4 +1,5 @@
 using Consul;
+using IdentityServer4.AccessTokenValidation;
 using MicroService.Core.Registry.Extentions;
 using MicroService.TeamService.Context;
 using MicroService.TeamService.Repositories;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
@@ -44,6 +46,15 @@ namespace MicroService.TeamService
             // 4、添加consul注册中心，加载配置
             services.AddConsulRegistry(Configuration);
 
+            // 5、校验AccessToken,从身份校验中心进行校验
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+            .AddIdentityServerAuthentication(options =>
+            {
+                options.Authority = Configuration.GetSection("AuthorizationCenter").Value; // 1、授权中心地址
+                options.ApiName = "TeamService"; // 2、api名称(项目具体名称)
+                options.RequireHttpsMetadata = false; // 3、https元数据，不需要
+                options.LegacyAudienceValidation = true;
+            });
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -66,6 +77,9 @@ namespace MicroService.TeamService
 
             app.UseRouting();
 
+            // 2、认证中间件 先认证后授权
+            app.UseAuthentication();
+            // 3、授权中间件
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
