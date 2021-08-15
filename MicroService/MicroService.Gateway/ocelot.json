@@ -19,5 +19,9 @@
     }
   ],
   "GlobalConfiguration": {
+    "AuthenticationOptions": {
+      "AuthenticationProviderKey": "OcelotKey",
+      "AllowedScopes": [ "memberservice", "teamserver" ]
+    }
   }
 }

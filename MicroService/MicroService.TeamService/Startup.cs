@@ -47,14 +47,14 @@ namespace MicroService.TeamService
             services.AddConsulRegistry(Configuration);
 
             // 5、校验AccessToken,从身份校验中心进行校验
-            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
-            .AddIdentityServerAuthentication(options =>
-            {
-                options.Authority = Configuration.GetSection("AuthorizationCenter").Value; // 1、授权中心地址
-                options.ApiName = "TeamService"; // 2、api名称(项目具体名称)
-                options.RequireHttpsMetadata = false; // 3、https元数据，不需要
-                options.LegacyAudienceValidation = true;
-            });
+            //services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+            //.AddIdentityServerAuthentication(options =>
+            //{
+            //    options.Authority = Configuration.GetSection("AuthorizationCenter").Value; // 1、授权中心地址
+            //    options.ApiName = "TeamService"; // 2、api名称(项目具体名称)
+            //    options.RequireHttpsMetadata = false; // 3、https元数据，不需要
+            //    options.LegacyAudienceValidation = true;
+            //});
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -77,8 +77,8 @@ namespace MicroService.TeamService
 
             app.UseRouting();
 
-            // 2、认证中间件 先认证后授权
-            app.UseAuthentication();
+            //// 2、认证中间件 先认证后授权
+            //app.UseAuthentication();
             // 3、授权中间件
             app.UseAuthorization();
 
