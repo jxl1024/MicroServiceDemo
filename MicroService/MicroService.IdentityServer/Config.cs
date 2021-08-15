@@ -12,8 +12,20 @@ namespace MicroService.IdentityServer
 {
     public class Config
     {
+        /// <summary>
+        /// 1、微服务API资源
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<ApiResource> GetApiResources()
+        {
+            return new List<ApiResource>
+            {
+                new ApiResource("TeamService", "TeamService api需要被保护",new List<string> {"role","admin" })
+            };
+        }
+
         public static IEnumerable<ApiScope> ApiScopes => new[]
-       {
+        {
            new ApiScope
            {
                Name="TeamService",

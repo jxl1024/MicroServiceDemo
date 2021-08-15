@@ -13,6 +13,7 @@ using IdentityServer4.Test;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
@@ -29,28 +30,37 @@ namespace IdentityServerHost.Quickstart.UI
     [AllowAnonymous]
     public class AccountController : Controller
     {
-        private readonly TestUserStore _users;
+        // 使用内存的测试数据
+        // private readonly TestUserStore _users;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
 
+        // 使用数据库数据
+        private UserManager<IdentityUser> _userManager; // 1、用户相关操作
+        private SignInManager<IdentityUser> _signInManager; // 2、登录操作
+
         public AccountController(
-            IIdentityServerInteractionService interaction,
-            IClientStore clientStore,
-            IAuthenticationSchemeProvider schemeProvider,
-            IEventService events,
-            TestUserStore users = null)
+             IIdentityServerInteractionService interaction,
+             IClientStore clientStore,
+             IAuthenticationSchemeProvider schemeProvider,
+             IEventService events,
+             UserManager<IdentityUser> userManager,
+             SignInManager<IdentityUser> signInManager)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-            _users = users ?? new TestUserStore(TestUsers.Users);
+            //  _users = users ?? new TestUserStore(TestUsers.Users);
 
             _interaction = interaction;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
+
 
         /// <summary>
         /// Entry point into the login workflow
@@ -110,58 +120,39 @@ namespace IdentityServerHost.Quickstart.UI
             if (ModelState.IsValid)
             {
                 // validate username/password against in-memory store
-                if (_users.ValidateCredentials(model.Username, model.Password))
+                var user = await _userManager.FindByNameAsync(model.Username);
+                if (user == null)
                 {
-                    var user = _users.FindByUsername(model.Username);
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username, clientId: context?.Client.ClientId));
-
-                    // only set explicit expiration here if user chooses "remember me". 
-                    // otherwise we rely upon expiration configured in cookie middleware.
-                    AuthenticationProperties props = null;
-                    if (AccountOptions.AllowRememberLogin && model.RememberLogin)
+                    ModelState.AddModelError(nameof(model.Username), $"用户名 {model.Username} not exists");
+                }
+                else
+                {
+                    if (await _userManager.CheckPasswordAsync(user, model.Password))
                     {
-                        props = new AuthenticationProperties
+                        AuthenticationProperties props = null;
+                        if (model.RememberLogin)
                         {
-                            IsPersistent = true,
-                            ExpiresUtc = DateTimeOffset.UtcNow.Add(AccountOptions.RememberMeLoginDuration)
-                        };
-                    };
-
-                    // issue authentication cookie with subject ID and username
-                    var isuser = new IdentityServerUser(user.SubjectId)
-                    {
-                        DisplayName = user.Username
-                    };
-
-                    await HttpContext.SignInAsync(isuser, props);
-
-                    if (context != null)
-                    {
-                        if (context.IsNativeClient())
-                        {
-                            // The client is native, so this change in how to
-                            // return the response is for better UX for the end user.
-                            return this.LoadingPage("Redirect", model.ReturnUrl);
+                            props = new AuthenticationProperties
+                            {
+                                IsPersistent = true,
+                                ExpiresUtc = DateTimeOffset.UtcNow.Add(TimeSpan.FromMinutes(30))
+                            };
                         }
 
-                        // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                        return Redirect(model.ReturnUrl);
-                    }
+                        var isuser = new IdentityServerUser(user.Id)
+                        {
+                            DisplayName = user.UserName
+                        };
 
-                    // request for a local page
-                    if (Url.IsLocalUrl(model.ReturnUrl))
-                    {
-                        return Redirect(model.ReturnUrl);
-                    }
-                    else if (string.IsNullOrEmpty(model.ReturnUrl))
-                    {
+                        await HttpContext.SignInAsync(isuser, props);
+
+                        if (_interaction.IsValidReturnUrl(model.ReturnUrl))
+                        {
+                            return Redirect(model.ReturnUrl);
+                        }
                         return Redirect("~/");
                     }
-                    else
-                    {
-                        // user might have clicked on a malicious link - should be logged
-                        throw new Exception("invalid return URL");
-                    }
+                    ModelState.AddModelError(nameof(model.Password), "密码错误");
                 }
 
                 await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.Client.ClientId));
